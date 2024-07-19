@@ -1,0 +1,136 @@
+﻿@page "/"
+@using Biblioteca.Data
+@using Biblioteca.Interfaces
+@using Biblioteca.Repository
+@rendermode InteractiveServer
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Home</PageTitle>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-6">
+            <h3>Listado de Autores</h3>
+
+            @if (autores == null)
+            {
+                <p>Cargando autores...</p>
+            }
+            else if (autores.Count == 0)
+            {
+                <p>No hay autores registrados.</p>
+            }
+            else
+            {
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var autor in autores)
+                        {
+                            <tr>
+                                <td>@autor.Name</td>
+                                <td>
+                                    <button class="btn btn-primary btn-sm" @onclick="@(() => AbrirModalEditar(autor))">
+                                        <i class="bi bi-pencil"></i> Editar
+                                    </button>
+                                    <button class="btn btn-danger btn-sm" @onclick="@(() => EliminarAutor(autor.Id, autor.Name))">
+                                        <i class="bi bi-trash"></i> Eliminar
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+
+        <div class="col-md-6">
+            <h3>Crear Nuevo Autor</h3>
+
+            <div class="card">
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="nombre">Nombre:</label>
+                        <input type="text" class="form-control" id="nombre" @bind="@nuevoAutor.Name">
+                    </div>
+                    <button class="btn btn-success mt-2" @onclick="CrearNuevoAutor">
+                        <i class="bi bi-plus"></i> Crear Autor
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Editar Autor -->
+<div class="modal fade" id="editarAutorModal" tabindex="-1" aria-labelledby="editarAutorModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editarAutorModalLabel">Editar Autor</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="editarNombre">Nombre:</label>
+                    <input type="text" class="form-control" id="editarNombre" @bind="@autorParaEditar.Name">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" @onclick="GuardarCambiosAutor">Guardar Cambios</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    List<Author> autores;
+    Author nuevoAutor = new Author();
+    Author autorParaEditar = new Author();
+
+    [Inject]
+    IGeneriRepository<Author> AuthorRepository { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        autores = await AuthorRepository.GetAllAsync();
+    }
+
+    private async Task CrearNuevoAutor()
+    {
+        await AuthorRepository.AddAsync(nuevoAutor);
+        autores = await AuthorRepository.GetAllAsync();
+        nuevoAutor = new Author();
+        StateHasChanged();
+    }
+
+    private void AbrirModalEditar(Author autor)
+    {
+        autorParaEditar = autor;
+        JSRuntime.InvokeVoidAsync("bootstrapInterop.showModal", "editarAutorModal");
+    }
+
+    private async Task GuardarCambiosAutor()
+    {
+        await AuthorRepository.UpdateAsync(autorParaEditar);
+        autores = await AuthorRepository.GetAllAsync();
+        JSRuntime.InvokeVoidAsync("bootstrapInterop.hideModal", "editarAutorModal");
+        StateHasChanged();
+    }
+
+    private async Task EliminarAutor(int autorId, string nombreAutor)
+    {
+        if (await JSRuntime.InvokeAsync<bool>("confirm", $"¿Estás seguro de eliminar a '{nombreAutor}'?"))
+        {
+            await AuthorRepository.DeleteAsync(autorId);
+            autores = await AuthorRepository.GetAllAsync();
+            StateHasChanged();
+        }
+    }
+}

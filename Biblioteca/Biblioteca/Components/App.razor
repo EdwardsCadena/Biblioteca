@@ -1,0 +1,36 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.5/font/bootstrap-icons.min.css"  crossorigin="anonymous">
+    <link rel="stylesheet" href="bootstrap/bootstrap.min.css" />
+    <link rel="stylesheet" href="app.css" />
+    <link rel="stylesheet" href="Biblioteca.styles.css" />
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <HeadOutlet />
+</head>
+
+<body>
+    <Routes />
+    <script src="_framework/blazor.web.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+    <script src="_framework/blazor.webassembly.js"></script>
+    <script>
+        window.bootstrapInterop = {
+            showModal: function (id) {
+                var myModal = new bootstrap.Modal(document.getElementById(id));
+                myModal.show();
+            },
+            hideModal: function (id) {
+                var myModalEl = document.getElementById(id);
+                var modal = bootstrap.Modal.getInstance(myModalEl);
+                modal.hide();
+            }
+        };
+    </script>
+</body>
+
+</html>
